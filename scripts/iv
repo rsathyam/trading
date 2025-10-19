@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+here="$(cd "$(dirname "$0")" && pwd)"
+repo_root="$(cd "$here/.." && pwd)"
+
+usage() {
+  cat <<'EOF'
+Usage: scripts/iv TICKER [options]
+
+If the first arg is not a flag and --ticker is not provided, it is treated as the ticker.
+
+Options (forwarded to iv_metrics.py):
+  --ticker SYMBOL
+  --lookback N
+  --target-dte N
+  --no-write-history
+  --verbose
+  --api-key KEY (or set POLYGON_API_KEY)
+EOF
+}
+
+if [[ $# -eq 0 || "$1" == "-h" || "$1" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+args=("$@")
+if [[ "$1" != --* ]]; then
+  # Treat first arg as ticker if not a flag and no explicit --ticker present
+  ticker="$1"; shift
+  args=(--ticker "$ticker" "$@")
+fi
+
+exec python3 "$repo_root/iv_metrics.py" "${args[@]}"
+
